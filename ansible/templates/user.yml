@@ -14,13 +14,13 @@
       SEMAPHORE_ADMIN: "admin"
 
   tasks:
-    - name: Assurez-vous que Docker est installé
+    - name: Installation Docker
       apt:
         name: docker.io
         state: present
       become: yes
 
-    - name: Assurez-vous que Docker est en cours d'exécution
+    - name: Docker start
       service:
         name: docker
         state: started
