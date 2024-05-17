@@ -1,0 +1,42 @@
+---
+- name: Déployer Semaphore avec Docker
+  hosts: gcp
+  become: yes
+  vars:
+    semaphore_image: "semaphoreui/semaphore:latest"
+    semaphore_ports:
+      - "3000:3000"
+    semaphore_env:
+      SEMAPHORE_DB_DIALECT: "bolt"
+      SEMAPHORE_ADMIN_PASSWORD: "admin"
+      SEMAPHORE_ADMIN_NAME: "admin"
+      SEMAPHORE_ADMIN_EMAIL: "admin@localhost"
+      SEMAPHORE_ADMIN: "admin"
+
+  tasks:
+    - name: Assurez-vous que Docker est installé
+      apt:
+        name: docker.io
+        state: present
+      become: yes
+
+    - name: Assurez-vous que Docker est en cours d'exécution
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Créer un conteneur Semaphore
+      docker_container:
+        name: semaphore
+        image: "{{ semaphore_image }}"
+        ports:
+          - "{{ semaphore_ports }}"
+        env:
+          SEMAPHORE_DB_DIALECT: "{{ semaphore_env.SEMAPHORE_DB_DIALECT }}"
+          SEMAPHORE_ADMIN_PASSWORD: "{{ semaphore_env.SEMAPHORE_ADMIN_PASSWORD }}"
+          SEMAPHORE_ADMIN_NAME: "{{ semaphore_env.SEMAPHORE_ADMIN_NAME }}"
+          SEMAPHORE_ADMIN_EMAIL: "{{ semaphore_env.SEMAPHORE_ADMIN_EMAIL }}"
+          SEMAPHORE_ADMIN: "{{ semaphore_env.SEMAPHORE_ADMIN }}"
+        state: started
+        restart_policy: always

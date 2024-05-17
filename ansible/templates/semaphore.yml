@@ -1,13 +1,28 @@
 ---
-
-- name: Installer Semaphore
+- name: Installation de Semaphore
   hosts: gcp
   become: yes
 
   tasks:
-    - name: Update apt packages
+    - name: Update
       apt:
         update_cache: yes
+
+    - name: Install UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: Ouvrir le port 3000 du firewall
+      ufw:
+        rule: allow
+        port: 3000
+        proto: tcp
+
+    - name: enable le UFW
+      ufw:
+        state: enabled
+        policy: allow
 
     - name: Install Snapd
       apt:
@@ -20,23 +35,14 @@
         enabled: yes
         state: started
 
-    - name: Install Semaphore
-      command: sudo snap install semaphore
 
-    - name: Install UFW
-      apt:
-        name: ufw
+    - name: Install Semaphore
+      snap:
+        name: semaphore
         state: present
 
-    - name: Open port 3000 in the firewall
-      ufw:
-        rule: allow
-        port: 3000
-        proto: tcp
-
-    - name: Ensure UFW is enabled
-      ufw:
-        state: enabled
-        policy: allow
-
+    - name: Start Semaphore service
+      shell: sudo snap start semaphore
+      args:
+        executable: /bin/bash
 
