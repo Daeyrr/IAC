@@ -1,0 +1,50 @@
+---
+- name: Configuration des utilisateurs et des permissions
+  hosts: serveurs
+  become: yes
+  tasks:
+
+    - name: Création des utilisateurs alpha et beta
+      user:
+        name: "{{ item }}"
+        password: "{{ 'password' | password_hash('sha512') }}"
+        shell: /bin/bash
+      with_items:
+        - alpha
+        - beta
+      tags: users
+
+    - name: Mettre en place une politique de mot de passe
+      lineinfile:
+        path: /etc/login.defs
+        regexp: "^{{ item.option }}"
+        line: "{{ item.option }} {{ item.value }}"
+      with_items:
+        - { option: 'PASS_MAX_DAYS', value: '90' }
+        - { option: 'PASS_MIN_DAYS', value: '0' }
+        - { option: 'PASS_MIN_LEN', value: '12' }
+        - { option: 'INACTIVE', value: '30' }
+      tags: password_policy
+
+    - name: Création du groupe omega
+      group:
+        name: omega
+      tags: group
+
+    - name: Création du dossier /home/omega et assignation au groupe omega
+      file:
+        path: /home/omega
+        state: directory
+        group: omega
+        mode: '1770'  # sticky bit avec droits en écriture pour le groupe
+      tags: folder
+
+    - name: Création de liens symboliques pour alpha et beta
+      file:
+        src: /home/omega
+        dest: "/home/{{ item }}/omega"
+        state: link
+      with_items:
+        - alpha
+        - beta
+      tags: symlink

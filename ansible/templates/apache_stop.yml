@@ -1,0 +1,11 @@
+---
+- name: Stop Apache on local server
+  hosts: serveurs
+  become: yes  # Utilise les privilèges root
+  tasks:
+
+    - name: Stop Apache2 service
+      systemd:
+        name: apache2
+        state: stopped
+        enabled: no  # Optionnel, pour désactiver le démarrage automatique au boot
